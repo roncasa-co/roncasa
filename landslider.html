@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Land Price Slider Widget</title>
+<style>
+body {margin:0;font-family:Inter,Arial,sans-serif;background:#fff;color:#000;}
+.wrap {max-width:400px;margin:40px auto;padding:15px;}
+.panel {background:#000;padding:15px;border-radius:12px;position:relative;}
+label.heading {color:#fff;font-size:13px;display:block;margin-bottom:5px;text-align:center;}
+.values {color:#fff;font-size:14px;margin-top:12px;font-weight:700;text-align:center;}
+.progress-bar {position:relative;height:10px;background:#222;border-radius:5px;cursor:pointer;}
+.progress-fill {height:100%;width:0%;background:#fff;border-radius:5px;transition: width 0.1s;}
+.thumb {
+  position:absolute;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid #000; /* thin black outline */
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <label class="heading">Land Price (psf ppr): <span id="landValue">$1,154</span></label>
+
+    <div id="progressBar" class="progress-bar">
+      <div id="progressFill" class="progress-fill"></div>
+      <div id="thumb" class="thumb"></div>
+    </div>
+
+    <div class="values">Predicted Launch Price: <span id="predictedValue">$2,800</span> psf</div>
+  </div>
+</div>
+
+<script>
+const BASE_LAND = 1154;
+const BASE_LAUNCH = 2800;
+const MIN = 1100;
+const MAX = 1500;
+const ratio = BASE_LAUNCH / BASE_LAND;
+
+const progressBar = document.getElementById("progressBar");
+const progressFill = document.getElementById("progressFill");
+const thumb = document.getElementById("thumb");
+const landValue = document.getElementById("landValue");
+const predictedValue = document.getElementById("predictedValue");
+
+function updateFromPosition(clientX) {
+  const rect = progressBar.getBoundingClientRect();
+  let pct = (clientX - rect.left) / rect.width;
+  pct = Math.max(0, Math.min(1, pct));
+  const land = Math.round(MIN + pct * (MAX - MIN));
+  const predicted = Math.round(land * ratio);
+
+  progressFill.style.width = (pct * 100) + "%";
+  thumb.style.left = (pct * 100) + "%";
+
+  landValue.textContent = "$" + land.toLocaleString();
+  predictedValue.textContent = "$" + predicted.toLocaleString();
+}
+
+let dragging = false;
+progressBar.addEventListener("mousedown", e => { dragging = true; updateFromPosition(e.clientX); });
+window.addEventListener("mousemove", e => { if(dragging) updateFromPosition(e.clientX); });
+window.addEventListener("mouseup", e => { dragging = false; });
+
+progressBar.addEventListener("touchstart", e => { dragging = true; updateFromPosition(e.touches[0].clientX); });
+window.addEventListener("touchmove", e => { if(dragging) updateFromPosition(e.touches[0].clientX); });
+window.addEventListener("touchend", e => { dragging = false; });
+
+// Click on bar to jump
+progressBar.addEventListener("click", e => { updateFromPosition(e.clientX); });
+
+// Initialize
+updateFromPosition(progressBar.getBoundingClientRect().left + ((BASE_LAND - MIN)/(MAX-MIN))*progressBar.getBoundingClientRect().width);
+</script>
+</body>
+</html>
