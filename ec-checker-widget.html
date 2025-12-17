@@ -166,5 +166,22 @@ document.addEventListener('DOMContentLoaded', function() {
   })();
 });
 </script>
+  <script>
+  function sendHeight() {
+    const height = document.body.scrollHeight;
+    window.parent.postMessage({ ecHeight: height }, '*');
+  }
+
+  sendHeight();
+
+  const observer = new MutationObserver(sendHeight);
+  observer.observe(document.body, { childList:true, subtree:true, attributes:true });
+
+  const finishBtn = document.getElementById('finishBtn');
+  if(finishBtn){
+    finishBtn.addEventListener('click', sendHeight);
+  }
+</script>
 </body>
 </html>
+
