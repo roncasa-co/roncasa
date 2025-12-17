@@ -25,7 +25,7 @@
   button:disabled{opacity:.4;cursor:not-allowed}
 
   .result{margin-top:18px;padding:14px;border-radius:12px;font-size:14px;display:none}
-  .yes{background:#4a916c;color:#fff}
+  .yes{background:#357d50;color:#fff}
   .no{background:#ff4d4d;color:#fff}
   .reason{margin-top:6px;font-size:13px;color:#fff}
 
@@ -101,56 +101,69 @@
 </div>
 
 <script>
-// === Domain lock code ===
-(function () {
-  const allowedDomains = ['roncasa.co','www.roncasa.co','roncasa.myshopify.com'];
-  function isAllowed() {
-    try {
-      if (window.top === window.self) return true;
-      const ref = document.referrer || '';
-      return allowedDomains.some(d => ref.includes(d));
-    } catch (e) { return true; }
-  }
-  if (!isAllowed()) {
-    document.addEventListener('DOMContentLoaded', () => {
+// === Domain lock and eligibility script ===
+document.addEventListener('DOMContentLoaded', function() {
+  /* Domain Lock */
+  (function () {
+    const allowedDomains = ['roncasa.co','www.roncasa.co','roncasa.myshopify.com'];
+    const ref = document.referrer || (location.ancestorOrigins && location.ancestorOrigins[0]) || '';
+    const allowed = allowedDomains.some(d => ref.includes(d));
+
+    if (!allowed) {
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#111;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,Arial,sans-serif;color:#fff;';
-      overlay.innerHTML = '<div style="max-width:420px;padding:28px;border-radius:16px;background:#1b1b1b;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45)"><div style="font-size:22px;font-weight:700;margin-bottom:6px">Roncasa Exclusive Tool</div><div style="font-size:13px;opacity:.85;margin-bottom:14px">This interactive EC eligibility checker is exclusively available via Roncasa.</div><div style="font-size:12px;opacity:.7">Please access this tool directly from <strong>Roncasa.co</strong></div></div>';
+      overlay.innerHTML = `
+        <div style="max-width:420px;padding:28px;border-radius:16px;background:#1b1b1b;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45)">
+          <div style="font-size:22px;font-weight:700;margin-bottom:6px">Roncasa Exclusive Tool</div>
+          <div style="font-size:13px;opacity:.85;margin-bottom:14px">
+            This interactive EC eligibility checker is exclusively available via Roncasa.
+          </div>
+          <div style="font-size:12px;opacity:.7">
+            Please access this tool directly from <strong>Roncasa.co</strong>
+          </div>
+        </div>`;
       document.body.appendChild(overlay);
-    });
-  }
-})();
-
-// === Eligibility logic ===
-const finishBtn = document.getElementById('finishBtn');
-const result = document.getElementById('result');
-const title = document.getElementById('resultTitle');
-const reason = document.getElementById('resultReason');
-function allAnswered(){
-  return ['family','citizen','income','property','interest','subsidy'].every(n=>document.querySelector(`input[name=${n}]:checked`));
-}
-document.addEventListener('change',()=>{finishBtn.disabled = !allAnswered();});
-finishBtn.addEventListener('click',()=>{
-  const fail = [];
-  if(document.querySelector('input[name=citizen]:checked').value==='no') fail.push('At least one applicant must be a Singapore Citizen.');
-  if(document.querySelector('input[name=income]:checked').value==='no') fail.push('Household income exceeds the $16,000 ceiling.');
-  if(document.querySelector('input[name=property]:checked').value==='no') fail.push('Ownership or recent disposal of private residential property disqualifies EC eligibility.');
-  if(document.querySelector('input[name=interest]:checked').value==='no') fail.push('Interest or ownership in other local or overseas property may disqualify EC eligibility.');
-  if(document.querySelector('input[name=subsidy]:checked').value==='no') fail.push('Households that have taken two housing subsidies are not eligible for an EC.');
-  result.style.display='block';
-  if(fail.length){
-    result.className='result no';
-    title.textContent='Not Eligible (Based on inputs)';
-    reason.innerHTML=fail.map(r=>`• ${r}`).join('<br>');
-  }else{
-    result.className='result yes';
-    title.textContent='Likely Eligible (Subject to documents)';
-    if(document.querySelector('input[name=subsidy]:checked').value==='warn'){
-      reason.textContent='You appear eligible, but resale levy may apply due to a previous housing subsidy.';
-    }else{
-      reason.textContent='Your responses meet the key EC eligibility conditions.';
+      return; // stop further script execution if not allowed
     }
-  }
+
+    // === Eligibility logic ===
+    const finishBtn = document.getElementById('finishBtn');
+    const result = document.getElementById('result');
+    const title = document.getElementById('resultTitle');
+    const reason = document.getElementById('resultReason');
+
+    function allAnswered(){
+      return ['family','citizen','income','property','interest','subsidy'].every(n=>document.querySelector(`input[name=${n}]:checked`));
+    }
+
+    document.addEventListener('change',()=>{finishBtn.disabled = !allAnswered();});
+
+    finishBtn.addEventListener('click',()=>{
+      const fail = [];
+      if(document.querySelector('input[name=citizen]:checked').value==='no') fail.push('At least one applicant must be a Singapore Citizen.');
+      if(document.querySelector('input[name=income]:checked').value==='no') fail.push('Household income exceeds the $16,000 ceiling.');
+      if(document.querySelector('input[name=property]:checked').value==='no') fail.push('Ownership or recent disposal of private residential property disqualifies EC eligibility.');
+      if(document.querySelector('input[name=interest]:checked').value==='no') fail.push('Interest or ownership in other local or overseas property may disqualify EC eligibility.');
+      if(document.querySelector('input[name=subsidy]:checked').value==='no') fail.push('Households that have taken two housing subsidies are not eligible for an EC.');
+
+      result.style.display='block';
+
+      if(fail.length){
+        result.className='result no';
+        title.textContent='Not Eligible (Based on inputs)';
+        reason.innerHTML=fail.map(r=>`• ${r}`).join('<br>');
+      }else{
+        result.className='result yes';
+        title.textContent='Likely Eligible (Subject to documents)';
+        if(document.querySelector('input[name=subsidy]:checked').value==='warn'){
+          reason.textContent='You appear eligible, but resale levy may apply due to a previous housing subsidy.';
+        }else{
+          reason.textContent='Your responses meet the key EC eligibility conditions.';
+        }
+      }
+    });
+
+  })();
 });
 </script>
 </body>
