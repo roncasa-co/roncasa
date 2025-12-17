@@ -5,89 +5,118 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>EC Eligibility Checker</title>
 <style>
-  body { font-family: Inter, sans-serif; background: #fff; margin: 0; padding: 20px; }
-  .widget { max-width: 720px; margin: auto; background: #f7f7f7; padding: 20px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
-  h2 { margin-top: 0; }
+  body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:#f5f5f5}
+  .wrap{max-width:560px;margin:20px auto;padding:16px}
+  .card{background:#111;color:#fff;border-radius:14px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+  h1{font-size:18px;margin:0 0 6px;color:#fff}
+  p{font-size:13px;color:#fff;margin:0 0 16px}
 
-  .step { display: none; }
-  .active { display: block; }
+  .q{margin-bottom:16px}
+  .q label{display:block;font-size:13px;margin-bottom:8px;color:#fff}
 
-  .option { background: #111; color: #fff; padding: 14px; margin: 10px 0; border-radius: 8px; cursor: pointer; border: 1px solid #222; }
-  .option:hover { background: #222; }
+  .options{display:grid;gap:8px}
+  .opt{background:#fff;color:#000;border:1px solid #333;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none}
+  .opt input{accent-color:#000;pointer-events:none}
+  .opt span{color:#000;background:transparent}
+  .opt input:checked + span{background:#fff;color:#000} /* keep text black and no highlight */
 
-  button { margin-top: 20px; padding: 12px 20px; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .actions{display:flex;justify-content:flex-end;margin-top:12px}
+  button{background:#000;color:#fff;border:none;border-radius:999px;padding:8px 16px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.4;cursor:not-allowed}
 
-  .end-screen { padding: 20px; background: #111; color: white; border-radius: 10px; text-align: center; }
+  .result{margin-top:18px;padding:14px;border-radius:12px;font-size:14px;display:none}
+  .yes{background:#0f2;color:#000}
+  .no{background:#ff4d4d;color:#fff} /* brighter red for contrast */
+  .reason{margin-top:6px;font-size:13px;color:#fff} /* white text for better contrast */
+
+  .cta{margin-top:12px;font-size:12px;color:#fff;text-align:center}
 </style>
 </head>
 <body>
-<div class="widget">
-  <h2>EC Eligibility Checker</h2>
+<div class="wrap">
+  <div class="card">
+    <h1>EC Eligibility Quick Check</h1>
+    <p>Answer a few questions to see if you may be eligible to buy an Executive Condominium.</p>
 
-  <!-- Step 1 -->
-  <div class="step active" id="step1">
-    <p><strong>1) What is your household type?</strong></p>
-    <div class="option" onclick="nextStep(2)">Fiancé / Fiancée Scheme</div>
-    <div class="option" onclick="nextStep(2)">Married couple with or without children</div>
-    <div class="option" onclick="nextStep(2)">Single buying with parents</div>
-    <div class="option" onclick="nextStep(2)">Widowed / Divorced with children</div>
-    <div class="option" onclick="nextStep(2)">Orphaned siblings</div>
-    <div class="option" onclick="nextStep(2)">Up to 4 singles buying together</div>
-  </div>
-
-  <!-- Step 2 -->
-  <div class="step" id="step2">
-    <p><strong>2) Citizenship</strong></p>
-    <div class="option" onclick="nextStep(3)">I am a Singapore Citizen</div>
-    <div class="option" onclick="nextStep(3)">All singles in my group are Singapore Citizens</div>
-  </div>
-
-  <!-- Step 3 -->
-  <div class="step" id="step3">
-    <p><strong>3) What is your age?</strong></p>
-    <div class="option" onclick="nextStep(4)">21 or older</div>
-    <div class="option" onclick="nextStep(4)">35 or older (for 2–4 singles)</div>
-  </div>
-
-  <!-- Step 4 -->
-  <div class="step" id="step4">
-    <p><strong>4) Is your monthly household income $16,000 or below?</strong></p>
-    <div class="option" onclick="nextStep(5)">Yes</div>
-    <div class="option" onclick="nextStep(5)">No</div>
-  </div>
-
-  <!-- Step 5 -->
-  <div class="step" id="step5">
-    <p><strong>5) Do you or any household member currently own or have owned private property in the past 30 months?</strong></p>
-    <div class="option" onclick="nextStep(6)">No</div>
-    <div class="option" onclick="nextStep(6)">Yes</div>
-  </div>
-
-  <!-- Step 6 -->
-  <div class="step" id="step6">
-    <p><strong>6) Have you taken 2 or more housing subsidies before?</strong></p>
-    <div class="option" onclick="nextStep(7)">No</div>
-    <div class="option" onclick="nextStep(7)">Yes</div>
-  </div>
-
-  <!-- Step 7 (Final Screen) -->
-  <div class="step" id="step7">
-    <div class="end-screen">
-      <h3>You've reached the end!</h3>
-      <p>Reach out for a more comprehensive check with calculation and case evaluation.</p>
+    <div class="q">
+      <label>1. Your household type</label>
+      <div class="options">
+        <label class="opt"><input type="radio" name="family" value="family"><span>Married / Engaged / With parents or children</span></label>
+        <label class="opt"><input type="radio" name="family" value="singles"><span>Two or more singles</span></label>
+      </div>
     </div>
-  </div>
 
+    <div class="q">
+      <label>2. Citizenship</label>
+      <div class="options">
+        <label class="opt"><input type="radio" name="citizen" value="ok"><span>At least one Singapore Citizen</span></label>
+        <label class="opt"><input type="radio" name="citizen" value="no"><span>No Singapore Citizen</span></label>
+      </div>
+    </div>
+
+    <div class="q">
+      <label>3. Monthly household income</label>
+      <div class="options">
+        <label class="opt"><input type="radio" name="income" value="ok"><span>$16,000 or below</span></label>
+        <label class="opt"><input type="radio" name="income" value="no"><span>Above $16,000</span></label>
+      </div>
+    </div>
+
+    <div class="q">
+      <label>4. Private property ownership (now or last 30 months)</label>
+      <div class="options">
+        <label class="opt"><input type="radio" name="property" value="ok"><span>No</span></label>
+        <label class="opt"><input type="radio" name="property" value="no"><span>Yes</span></label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="finishBtn" disabled>Finish</button>
+    </div>
+
+    <div id="result" class="result">
+      <strong id="resultTitle"></strong>
+      <div id="resultReason" class="reason"></div>
+    </div>
+
+    <div class="cta"> By Roncasa.co
+<br>
+	For a more comprehensive check with calculations, please reach out~</div>
+  </div>
 </div>
 
 <script>
-let current = 1;
-function nextStep(n){
-  document.getElementById("step"+current).classList.remove("active");
-  current = n;
-  document.getElementById("step"+n).classList.add("active");
-}
+  const finishBtn = document.getElementById('finishBtn');
+  const result = document.getElementById('result');
+  const title = document.getElementById('resultTitle');
+  const reason = document.getElementById('resultReason');
+
+  function allAnswered(){
+    return ['family','citizen','income','property'].every(n=>document.querySelector(`input[name=${n}]:checked`));
+  }
+
+  document.addEventListener('change',()=>{
+    finishBtn.disabled = !allAnswered();
+  });
+
+  finishBtn.addEventListener('click',()=>{
+    const fail = [];
+    if(document.querySelector('input[name=citizen]:checked').value==='no') fail.push('At least one applicant must be a Singapore Citizen.');
+    if(document.querySelector('input[name=income]:checked').value==='no') fail.push('Household income exceeds the $16,000 ceiling.');
+    if(document.querySelector('input[name=property]:checked').value==='no') fail.push('Ownership of private residential property disqualifies EC eligibility.');
+
+    result.style.display='block';
+
+    if(fail.length){
+      result.className='result no';
+      title.textContent='Not Eligible (Based on inputs)';
+      reason.innerHTML=fail.map(r=>`• ${r}`).join('<br>');
+    }else{
+      result.className='result yes';
+      title.textContent='Likely Eligible (Subject to documents)';
+      reason.textContent='Your responses meet the key EC eligibility conditions.';
+    }
+  });
 </script>
 </body>
 </html>
