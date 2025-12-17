@@ -25,7 +25,7 @@
   button:disabled{opacity:.4;cursor:not-allowed}
 
   .result{margin-top:18px;padding:14px;border-radius:12px;font-size:14px;display:none}
-  .yes{background:#0f2;color:#fff}
+  .yes{background:#6fb18f;color:#fff}
   .no{background:#ff4d4d;color:#fff} /* brighter red for contrast */
   .reason{margin-top:6px;font-size:13px;color:#fff} /* white text for better contrast */
 
@@ -63,10 +63,28 @@
     </div>
 
     <div class="q">
-      <label>4. Private property ownership (now or last 30 months)</label>
+      <label>4. Private residential property ownership (now or last 30 months)</label>
       <div class="options">
-        <label class="opt"><input type="radio" name="property" value="ok"><span>No</span></label>
-        <label class="opt"><input type="radio" name="property" value="no"><span>Yes</span></label>
+        <label class="opt"><input type="radio" name="property" value="ok"><span>No private residential property owned or disposed in last 30 months</span></label>
+        <label class="opt"><input type="radio" name="property" value="no"><span>Yes, currently own or disposed within last 30 months</span></label>
+      </div>
+    </div>
+
+    <div class="q">
+      <label>5. Interest or ownership in any other property (local or overseas)</label>
+      <div class="options">
+        <label class="opt"><input type="radio" name="interest" value="ok"><span>No interest or ownership (direct, inherited, trust, nominee, gift)</span></label>
+        <label class="opt"><input type="radio" name="interest" value="no"><span>Yes, have interest or ownership in property</span></label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div class="q">
+      <label>6. Previous subsidised housing taken</label>
+      <div class="options">
+        <label class="opt"><input type="radio" name="subsidy" value="ok"><span>No – never bought HDB, DBSS, EC, or received CPF housing grants</span></label>
+        <label class="opt"><input type="radio" name="subsidy" value="warn"><span>Yes – taken ONE housing subsidy (e.g. HDB flat, CPF housing grant, DBSS, or EC)</span></label>
+        <label class="opt"><input type="radio" name="subsidy" value="no"><span>Yes – taken TWO housing subsidies (not eligible for EC)</span></label>
       </div>
     </div>
 
@@ -79,20 +97,42 @@
       <div id="resultReason" class="reason"></div>
     </div>
 
-    <div class="cta"> By Roncasa.co
-<br>
-	For a more comprehensive check with calculations, please reach out~</div>
+    <div class="cta">By <strong>Roncasa.co</strong><br>For a more comprehensive check with calculations, please reach out~</div>
   </div>
 </div>
 
 <script>
+  /* === Roncasa Domain Lock (Reusable for all tools) === */
+  (function(){
+    const allowedDomains = [
+      'roncasa.co',
+      'www.roncasa.co',
+      'roncasa.myshopify.com'
+    ];
+
+    const ref = document.referrer || (location.ancestorOrigins && location.ancestorOrigins[0]) || '';
+    const allowed = allowedDomains.some(d => ref.includes(d));
+
+    if(!allowed){
+      document.body.innerHTML = `
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-family:Inter,system-ui,Arial,sans-serif">
+          <div style="max-width:420px;padding:28px;border-radius:16px;background:#1b1b1b;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)">
+            <div style="font-size:22px;font-weight:700;margin-bottom:6px">Roncasa Exclusive Tool</div>
+            <div style="font-size:13px;opacity:.85;margin-bottom:14px">This interactive EC eligibility checker is exclusively available via Roncasa.</div>
+            <div style="font-size:12px;opacity:.7">If you believe this is an error, please access the tool from Roncasa.co</div>
+          </div>
+        </div>`;
+    }
+  })();
+
+
   const finishBtn = document.getElementById('finishBtn');
   const result = document.getElementById('result');
   const title = document.getElementById('resultTitle');
   const reason = document.getElementById('resultReason');
 
   function allAnswered(){
-    return ['family','citizen','income','property'].every(n=>document.querySelector(`input[name=${n}]:checked`));
+    return ['family','citizen','income','property','interest','subsidy'].every(n=>document.querySelector(`input[name=${n}]:checked`));
   }
 
   document.addEventListener('change',()=>{
@@ -103,7 +143,9 @@
     const fail = [];
     if(document.querySelector('input[name=citizen]:checked').value==='no') fail.push('At least one applicant must be a Singapore Citizen.');
     if(document.querySelector('input[name=income]:checked').value==='no') fail.push('Household income exceeds the $16,000 ceiling.');
-    if(document.querySelector('input[name=property]:checked').value==='no') fail.push('Ownership of private residential property disqualifies EC eligibility.');
+    if(document.querySelector('input[name=property]:checked').value==='no') fail.push('Ownership or recent disposal of private residential property disqualifies EC eligibility.');
+    if(document.querySelector('input[name=interest]:checked').value==='no') fail.push('Interest or ownership in other local or overseas property may disqualify EC eligibility.');
+    if(document.querySelector('input[name=subsidy]:checked').value==='no') fail.push('Households that have taken two housing subsidies are not eligible for an EC.');
 
     result.style.display='block';
 
@@ -114,7 +156,11 @@
     }else{
       result.className='result yes';
       title.textContent='Likely Eligible (Subject to documents)';
-      reason.textContent='Your responses meet the key EC eligibility conditions.';
+      if(document.querySelector('input[name=subsidy]:checked').value==='warn'){
+        reason.textContent='You appear eligible, but resale levy may apply due to a previous housing subsidy.';
+      }else{
+        reason.textContent='Your responses meet the key EC eligibility conditions.';
+      }
     }
   });
 </script>
